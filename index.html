@@ -458,13 +458,36 @@
       50%      { transform: translateY(-8px) rotate(3deg); }
     }
 
-    @media (max-width: 580px) {
-      header { padding: 5px; }
-      th, td { padding: 13px 10px; }
-      h1 { font-size: 2.2rem; }
-      .date-chip { font-size: .78rem; padding: 4px 8px; }
-      .countdown-wrap { padding: 16px 16px; }
-      .subject-cell { font-size: .95rem; }
+@media (max-width: 580px) {
+      header { padding: 5px; margin-bottom: 20px;}
+      h1 { font-size: 1.8rem; }
+      
+      /* إضافة ميزة السحب الأفقي للجدول إذا كانت الشاشة كلش صغيرة */
+      .table-card { overflow-x: auto; border-radius: 16px; }
+      table { width: 100%; min-width: 320px; }
+      
+      /* إخفاء حقل التسلسل (#) بالموبايل لتوفير مساحة */
+      th:first-child, td:first-child { display: none; }
+      
+      /* تقليل المسافات وتصغير الخطوط */
+      th, td { padding: 10px 4px; font-size: 0.8rem; }
+      .subject-cell { font-size: 0.85rem; }
+      .day-cell { font-size: 0.8rem; }
+      
+      /* تصغير التاريخ */
+      .date-chip { font-size: 0.65rem; padding: 3px 5px; gap: 3px; }
+      .date-chip svg { width: 12px; height: 12px; }
+      
+      /* تصغير مربع الصح والشارات */
+      .custom-checkbox { width: 18px; height: 18px; }
+      .next-badge { font-size: 0.55rem; padding: 2px 4px; margin-left: 3px;}
+      .check-icon { width: 16px; height: 16px; font-size: 0.6rem; margin-left: 4px; }
+      
+      /* تصغير العداد */
+      .countdown-wrap { padding: 12px 10px; gap: 8px; }
+      .cd-unit { min-width: 48px; padding: 6px 6px; }
+      .cd-unit .n { font-size: 1.2rem; }
+      .cd-unit .u { font-size: 0.6rem; }
     }
   </style>
 </head>

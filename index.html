@@ -584,52 +584,71 @@
 
     function renderTable() {
       const tbody = document.getElementById('exam-body');
-      tbody.innerHTML = '';
+      
+      // التعديل لإزالة الرجة: فحص إذا كان الجدول فارغ لنبنيه مرة واحدة فقط
+      const isFirstRender = tbody.children.length === 0;
       
       let doneCount = 0;
       nextIdx = -1;
 
+      // حساب الإحصائيات ومعرفة الامتحان القادم
       exams.forEach((exam, i) => {
+        if (completedState[i]) {
+          doneCount++;
+        } else if (nextIdx === -1) {
+          nextIdx = i;
+        }
+      });
+
+      // بناء هيكل الجدول فقط إذا كان فارغ (أول مرة يفتح الموقع)
+      if (isFirstRender) {
+        exams.forEach((exam, i) => {
+          const d = new Date(exam.date);
+          const fmt = d.toLocaleDateString('ar-IQ', { day:'numeric', month:'long', year:'numeric' });
+
+          const tr = document.createElement('tr');
+          
+          tr.innerHTML = `
+            <td class="num-cell"><span class="num-badge">${i+1}</span></td>
+            <td class="day-cell" id="day-cell-${i}"></td>
+            <td>
+              <span class="date-chip">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <rect x="3" y="4" width="18" height="18" rx="3"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                ${fmt}
+              </span>
+            </td>
+            <td class="subject-cell">${exam.subject}</td>
+            <td class="check-cell">
+              <input type="checkbox" class="custom-checkbox" id="cb-${i}" onchange="toggleExam(${i})">
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // تحديث الخصائص بمرونة بدون مسح العناصر (لإزالة الرجة)
+      exams.forEach((exam, i) => {
+        const tr = tbody.children[i];
         const isPassed = completedState[i];
-        if (isPassed) doneCount++;
+        const isNext = !isPassed && nextIdx === i;
 
-        // المادة القادمة هي أول مادة لم يتم وضع صح عليها
-        const isNext = !isPassed && nextIdx === -1;
-        if (isNext) nextIdx = i;
-
-        const d = new Date(exam.date);
-        const fmt = d.toLocaleDateString('ar-IQ', { day:'numeric', month:'long', year:'numeric' });
-
-        const tr = document.createElement('tr');
+        tr.className = '';
         if (isPassed) tr.classList.add('done');
-        if (isNext)   tr.classList.add('next-exam');
+        if (isNext) tr.classList.add('next-exam');
 
         const dayContent = isPassed
           ? `<span class="check-icon">✔</span>${exam.day}`
           : isNext
             ? `${exam.day}<span class="next-badge">اللي حترسب بيه</span>`
             : exam.day;
-
-        tr.innerHTML = `
-          <td class="num-cell"><span class="num-badge">${i+1}</span></td>
-          <td class="day-cell">${dayContent}</td>
-          <td>
-            <span class="date-chip">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <rect x="3" y="4" width="18" height="18" rx="3"/>
-                <line x1="16" y1="2" x2="16" y2="6"/>
-                <line x1="8" y1="2" x2="8" y2="6"/>
-                <line x1="3" y1="10" x2="21" y2="10"/>
-              </svg>
-              ${fmt}
-            </span>
-          </td>
-          <td class="subject-cell">${exam.subject}</td>
-          <td class="check-cell">
-            <input type="checkbox" class="custom-checkbox" onchange="toggleExam(${i})" ${isPassed ? 'checked' : ''}>
-          </td>
-        `;
-        tbody.appendChild(tr);
+            
+        document.getElementById(`day-cell-${i}`).innerHTML = dayContent;
+        document.getElementById(`cb-${i}`).checked = isPassed;
       });
 
       // تحديث الإحصائيات
@@ -640,7 +659,7 @@
       tick();
     }
 
-    // دالة لتغيير حالة الامتحان يدوياً (في حال ردتي تغيرين شي)
+    // دالة لتغيير حالة الامتحان يدوياً
     window.toggleExam = function(index) {
       completedState[index] = !completedState[index];
       localStorage.setItem('examsState', JSON.stringify(completedState));

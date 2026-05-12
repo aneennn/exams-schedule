@@ -543,13 +543,13 @@
 
   <div class="footer">وقت الامتحانات <span>9:00 صباحاً</span> —  حنرسب بكل الاحوال  🦋💪</div>
 
-  <script>
+ <script>
     const exams = [
       { day: 'الاثنين',    date: '2026-05-11', subject: 'خوارزميات البحث' },
       { day: 'الأربعاء',   date: '2026-05-13', subject: 'قواعد بيانات' },
       { day: 'الاثنين',    date: '2026-05-18', subject: 'اللغة العربية' },
       { day: 'الأربعاء',   date: '2026-05-20', subject: 'المعالجة المايكروية' },
-      { day: 'السبت',      date: '2026-05-23', subject: 'منطق مضبب' },
+      { day: 'السبت',      date: '2026-05-23', subject: 'المنطق المضبب' },
       { day: 'الثلاثاء',   date: '2026-06-02', subject: 'اللغة الانكليزية' },
       { day: 'الخميس',     date: '2026-06-04', subject: 'طرق البحث الموجهة' }
     ];
@@ -557,6 +557,29 @@
     // استرجاع حالة الامتحانات المحفوظة من المتصفح
     let completedState = JSON.parse(localStorage.getItem('examsState')) || Array(exams.length).fill(false);
     
+    // ----------------------------------------------------
+    // التعديل الجديد: التحديث التلقائي للامتحانات المنتهية
+    const now = new Date();
+    let stateChanged = false;
+
+    exams.forEach((exam, i) => {
+      const examEndTime = new Date(exam.date);
+      // حددنا وقت النهاية الساعة 12 ظهراً (بما إن الامتحان يبدأ 9 صباحاً)
+      examEndTime.setHours(12, 0, 0, 0); 
+
+      // إذا الوقت الحالي عبر وقت نهاية الامتحان، وما كان مأشر صح
+      if (now > examEndTime && !completedState[i]) {
+        completedState[i] = true; // خلي صح تلقائياً
+        stateChanged = true;
+      }
+    });
+
+    // إذا صار أي تحديث تلقائي، نحفظه بالذاكرة حتى ما يضيع
+    if (stateChanged) {
+      localStorage.setItem('examsState', JSON.stringify(completedState));
+    }
+    // ----------------------------------------------------
+
     let nextIdx = -1;
 
     function renderTable() {
@@ -570,6 +593,7 @@
         const isPassed = completedState[i];
         if (isPassed) doneCount++;
 
+        // المادة القادمة هي أول مادة لم يتم وضع صح عليها
         const isNext = !isPassed && nextIdx === -1;
         if (isNext) nextIdx = i;
 
@@ -613,11 +637,10 @@
       document.getElementById('stat-rem').textContent = exams.length - doneCount;
       document.getElementById('stat-done').textContent = doneCount;
 
-      // تحديث العداد الفوري
       tick();
     }
 
-    // دالة لتغيير حالة الامتحان
+    // دالة لتغيير حالة الامتحان يدوياً (في حال ردتي تغيرين شي)
     window.toggleExam = function(index) {
       completedState[index] = !completedState[index];
       localStorage.setItem('examsState', JSON.stringify(completedState));
@@ -639,7 +662,7 @@
       }
 
       const target = new Date(exams[nextIdx].date);
-      target.setHours(9,0,0,0);
+      target.setHours(9,0,0,0); // وقت الامتحان 9 صباحاً
       const diff = target - new Date();
 
       if (diff <= 0) {
